@@ -118,11 +118,24 @@ type RendererOptions struct {
 	Generator string
 }
 
+// Customizer is an interface that allows for customization of HTML tags before they are
+// output.
+type Customizer interface {
+	Paragraph(p *ast.Paragraph)
+}
+
+// DefaultCustomizer is a Customizer that does nothing.
+type DefaultCustomizer struct{}
+
+func (*DefaultCustomizer) Paragraph(*ast.Paragraph) {}
+
 // Renderer implements Renderer interface for HTML output.
 //
 // Do not create this directly, instead use the NewRenderer function.
 type Renderer struct {
 	Opts RendererOptions
+
+	Customizer Customizer
 
 	closeTag string // how to end singleton tags: either " />" or ">"
 
@@ -209,7 +222,8 @@ func NewRenderer(opts RendererOptions) *Renderer {
 	}
 
 	return &Renderer{
-		Opts: opts,
+		Opts:       opts,
+		Customizer: &DefaultCustomizer{},
 
 		closeTag:   closeTag,
 		headingIDs: make(map[string]int),
@@ -598,6 +612,7 @@ func (r *Renderer) Paragraph(w io.Writer, para *ast.Paragraph, entering bool) {
 	if SkipParagraphTags(para) {
 		return
 	}
+	r.Customizer.Paragraph(para)
 	if entering {
 		r.paragraphEnter(w, para)
 	} else {
