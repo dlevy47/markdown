@@ -116,6 +116,9 @@ type RendererOptions struct {
 	// Generator is a meta tag that is inserted in the generated HTML so show what rendered it. It should not include the closing tag.
 	// Defaults (note content quote is not closed) to `  <meta name="GENERATOR" content="github.com/gomarkdown/markdown markdown processor for Go`
 	Generator string
+
+	// If SkipParagraphTags, all paragraph tags will be skipped.
+	SkipParagraphTags bool
 }
 
 // Customizer is an interface that allows for customization of HTML tags before they are
@@ -609,7 +612,7 @@ func (r *Renderer) paragraphExit(w io.Writer, para *ast.Paragraph) {
 
 // Paragraph writes ast.Paragraph node
 func (r *Renderer) Paragraph(w io.Writer, para *ast.Paragraph, entering bool) {
-	if SkipParagraphTags(para) {
+	if r.Opts.SkipParagraphTags || SkipParagraphTags(para) {
 		return
 	}
 	r.Customizer.Paragraph(para)
